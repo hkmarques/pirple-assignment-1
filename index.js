@@ -14,22 +14,26 @@ const notFoundHandler = (_, res) => {
   res.end();
 };
 
-const helloHandler = (_, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.writeHead(httpStatusCodes.OK);
-  res.end(HELLO_PAYLOAD);
+const helloHandlers = {
+  post: (_, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.writeHead(httpStatusCodes.OK);
+    res.end(HELLO_PAYLOAD);
+  }
 };
 
 const requestHandler = (req, res) => {
   const { pathname } = url.parse(req.url, true);
   const resource =
     typeof pathname === 'string' ? pathname.replace(/^\/+|\/+$/g, '') : '';
-  const specificHandler = handlers[resource] || notFoundHandler;
+
+  const method = req.method.toLowerCase();
+  const specificHandler = (handlers[resource] || {})[method] || notFoundHandler;
   specificHandler(req, res);
 };
 
 const handlers = {
-  hello: helloHandler
+  hello: helloHandlers
 };
 
 const httpServer = http.createServer(requestHandler);
